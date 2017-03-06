@@ -84,6 +84,15 @@ Symbol margin with the background color set to the editor's default font color
 editor.setMarginType(3, PyQt5.Qsci.QsciScintilla.SymbolMarginDefaultForegroundColor)
 # Set the margin's width
 editor.setMarginWidth(3, "0000")
+# Set the margin mask to display all markers
+editor.setMarginMarkerMask(
+    3, 0b1111111111111111111111111
+)
+# Add a marker that is built into QScintilla.
+# Note that the marker will be displayed on all symbol margins with the 
+# third marker bit set to '1'!
+marker = editor.markerDefine(PyQt5.Qsci.QsciScintilla.Rectangle, 2)
+editor.markerAdd(0, 2)
 
 """
 Text margin
@@ -105,6 +114,13 @@ style = PyQt5.Qsci.QsciStyle(
     eolFill=False, # End-Of-Line Fill
 )
 editor.setMarginText(1, "line2", style)
+
+"""
+More marker examples
+"""
+# Define a marker using an ASCII character
+marker = editor.markerDefine("T", 2)
+editor.markerAdd(0, 2)
 
 # For the QScintilla editor to properly process events we need to add it to
 # a QMainWindow object.
