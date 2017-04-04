@@ -95,7 +95,7 @@ class LexerNim(PyQt5.Qsci.QsciLexerCustom):
             parent.setSelection(0, start+1, 0, end)
             parent.replaceSelectedText("CLICK")
         # Attach the hotspot click signal to a predefined function
-        parent.SCN_HOTSPOTRELEASECLICK.connect(hotspot_click)
+        parent.SCN_HOTSPOTCLICK.connect(hotspot_click)
             
     
     def init_colors(self):
