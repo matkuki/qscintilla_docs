@@ -11,13 +11,9 @@ import re
 class LexerNim(PyQt5.Qsci.QsciLexerCustom):
     styles = {
         "Default" : 0,
-        "Comment" : 1,
-        "Keyword" : 2,
-        "String" :  3,
-        "Number" :  4,
-        "Pragma" : 5,
-        "Operator" : 6,
-        "Unsafe" : 7,
+        "Keyword" : 1,
+        "Unsafe" : 2,
+        "MultilineComment" : 3,
     }
     keyword_list = [
         "block", "const", "export", "import", "include", "let", 
@@ -61,13 +57,9 @@ class LexerNim(PyQt5.Qsci.QsciLexerCustom):
     def init_colors(self):
         # Font color
         self.setColor(PyQt5.QtGui.QColor(0x00, 0x00, 0x00), self.styles["Default"])
-        self.setColor(PyQt5.QtGui.QColor(0x00, 0x7f, 0x00), self.styles["Comment"])
         self.setColor(PyQt5.QtGui.QColor(0x00, 0x00, 0x7f), self.styles["Keyword"])
-        self.setColor(PyQt5.QtGui.QColor(0x7f, 0x00, 0x7f), self.styles["String"])
-        self.setColor(PyQt5.QtGui.QColor(0x00, 0x7f, 0x7f), self.styles["Number"])
-        self.setColor(PyQt5.QtGui.QColor(0x00, 0x7f, 0x40), self.styles["Pragma"])
-        self.setColor(PyQt5.QtGui.QColor(0x7f, 0x7f, 0x7f), self.styles["Operator"])
         self.setColor(PyQt5.QtGui.QColor(0x7f, 0x00, 0x00), self.styles["Unsafe"])
+        self.setColor(PyQt5.QtGui.QColor(0x7f, 0x7f, 0x00), self.styles["MultilineComment"])
         # Paper color
         for i in range(len(self.styles)):
             self.setPaper(PyQt5.QtGui.QColor(0xff, 0xff, 0xff), i)

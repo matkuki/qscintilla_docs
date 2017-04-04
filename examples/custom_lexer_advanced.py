@@ -11,13 +11,9 @@ import re
 class LexerNim(PyQt5.Qsci.QsciLexerCustom):
     styles = {
         "Default" : 0,
-        "Comment" : 1,
-        "Keyword" : 2,
-        "String" :  3,
-        "Number" :  4,
-        "Pragma" : 5,
-        "Operator" : 6,
-        "Unsafe" : 7,
+        "Keyword" : 1,
+        "Unsafe" : 2,
+        "MultilineComment" : 3,
     }
     keyword_list = [
         "block", "const", "export", "import", "include", "let", 
@@ -58,17 +54,56 @@ class LexerNim(PyQt5.Qsci.QsciLexerCustom):
                 self.setFont(PyQt5.QtGui.QFont("Courier", 8, weight=PyQt5.QtGui.QFont.Black), i)
             else:
                 self.setFont(PyQt5.QtGui.QFont("Courier", 8), i)
+        # Set the Keywords style to be clickable with hotspots
+        # using the scintilla low level messaging system
+        parent.SendScintilla(
+            PyQt5.Qsci.QsciScintillaBase.SCI_STYLESETHOTSPOT, 
+            self.styles["Keyword"], 
+            True
+        )
+        parent.SendScintilla(
+            PyQt5.Qsci.QsciScintillaBase.SCI_SETHOTSPOTACTIVEFORE, 
+            True, 
+            PyQt5.QtGui.QColor(0x00, 0x7f, 0xff)
+        )
+        parent.SendScintilla(
+            PyQt5.Qsci.QsciScintillaBase.SCI_SETHOTSPOTACTIVEUNDERLINE, True
+        )
+        # Define a hotspot click function
+        def hotspot_click(position, modifiers):
+            """
+            Simple example for getting the clicked token
+            """
+            text = parent.text()
+            delimiters = [
+                '(', ')', '[', ']', '{', '}', ' ', '.', ',', ';', '-',
+                '+', '=', '/', '*', '#'
+            ]
+            start = 0
+            end = 0
+            for i in range(position+1, len(text)):
+                if text[i] in delimiters:
+                    end = i
+                    break
+            for i in range(position,-1,-1):
+                if text[i] in delimiters:
+                    start = i
+                    break
+            clicked_token = text[start:end].strip()
+            # Print the token and replace it with the string "CLICK"
+            print("'" + clicked_token + "'")
+            parent.setSelection(0, start+1, 0, end)
+            parent.replaceSelectedText("CLICK")
+        # Attach the hotspot click signal to a predefined function
+        parent.SCN_HOTSPOTRELEASECLICK.connect(hotspot_click)
+            
     
     def init_colors(self):
         # Font color
         self.setColor(PyQt5.QtGui.QColor(0x00, 0x00, 0x00), self.styles["Default"])
-        self.setColor(PyQt5.QtGui.QColor(0x00, 0x7f, 0x00), self.styles["Comment"])
         self.setColor(PyQt5.QtGui.QColor(0x00, 0x00, 0x7f), self.styles["Keyword"])
-        self.setColor(PyQt5.QtGui.QColor(0x7f, 0x00, 0x7f), self.styles["String"])
-        self.setColor(PyQt5.QtGui.QColor(0x00, 0x7f, 0x7f), self.styles["Number"])
-        self.setColor(PyQt5.QtGui.QColor(0x00, 0x7f, 0x40), self.styles["Pragma"])
-        self.setColor(PyQt5.QtGui.QColor(0x7f, 0x7f, 0x7f), self.styles["Operator"])
         self.setColor(PyQt5.QtGui.QColor(0x7f, 0x00, 0x00), self.styles["Unsafe"])
+        self.setColor(PyQt5.QtGui.QColor(0x7f, 0x7f, 0x00), self.styles["MultilineComment"])
         # Paper color
         for i in range(len(self.styles)):
             self.setPaper(PyQt5.QtGui.QColor(0xff, 0xff, 0xff), i)
@@ -94,14 +129,32 @@ class LexerNim(PyQt5.Qsci.QsciLexerCustom):
         splitter = re.compile(r"(\{\.|\.\}|\#|\'|\"\"\"|\n|\s+|\w+|\W)")
         # Scintilla works with bytes, so we have to adjust the start and end boundaries.
         # Like all Qt objects the lexers parent is the QScintilla editor.
-        text = bytearray(self.parent().text().lower(), "utf-8")[start:end].decode("utf-8")
+        text = bytearray(self.parent().text(), "utf-8")[start:end].decode("utf-8")
         tokens = [
             (token, len(bytearray(token, "utf-8"))) 
                 for token in splitter.findall(text)
         ]
+        # Multiline styles
+        multiline_comment_flag = False
+        # Check previous style for a multiline style
+        if start != 0:
+            previous_style = editor.SendScintilla(editor.SCI_GETSTYLEAT, start - 1)
+            if previous_style == self.styles["MultilineComment"]:
+                multiline_comment_flag = True
         # Style the text in a loop
         for i, token in enumerate(tokens):
-            if token[0] in self.keyword_list:
+            if multiline_comment_flag == False and token[0] == "#" and tokens[i+1][0] == "[":
+                # Start of a multiline comment
+                self.setStyling(token[1], self.styles["MultilineComment"])
+                # Set the multiline comment flag
+                multiline_comment_flag = True
+            elif multiline_comment_flag == True:
+                # Multiline comment flag is set
+                self.setStyling(token[1], self.styles["MultilineComment"])
+                # Check if a multiline comment ends
+                if token[0] == "#" and tokens[i-1][0] == "]":
+                    multiline_comment_flag = False
+            elif token[0] in self.keyword_list:
                 # Keyword
                 self.setStyling(token[1], self.styles["Keyword"])
             elif token[0] in self.unsafe_keyword_list:
@@ -137,10 +190,14 @@ proc python_style_text*(self, args: PyObjectPtr): PyObjectPtr {.exportc, cdecl.}
         addr(value_end),
         addr(lexer),
         addr(editor),
-    )    
-    if parse_result == 0:
-        echo "Napaka v pretvarjanju argumentov v funkcijo!"        
-        returnNone()
+    )
+    
+    #[
+	    if parse_result == 0:
+		echo "Napaka v pretvarjanju argumentov v funkcijo!"        
+		returnNone()
+    ]#
+    
     var
         text_method = objectGetAttr(editor, buildValue("s", cstring("text")))
         text_object = objectCallObject(text_method, tupleNew(0))
