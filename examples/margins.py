@@ -122,6 +122,19 @@ More marker examples
 marker = editor.markerDefine("T", 2)
 editor.markerAdd(0, 2)
 
+"""
+Margin click example
+"""
+# First enable mouse clicks on margin 1
+editor.setMarginSensitivity(1, True)
+# Connect the margin clicked signal to a function
+def margin_click(margin, line, state):
+    # margin parameter = Integer (margin_number)
+    # line parameter = Integer (line_number)
+    # state parameter = Qt.KeyboardModifiers (OR-ed together) 
+    print("Margin {} clicked at line {}!".format(margin, line))
+editor.marginClicked.connect(margin_click)
+
 # For the QScintilla editor to properly process events we need to add it to
 # a QMainWindow object.
 main_window = PyQt5.QtWidgets.QMainWindow()
