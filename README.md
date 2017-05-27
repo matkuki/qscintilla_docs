@@ -1,6 +1,6 @@
 Documentation for QScintilla editing component of the PyQt framework.
-If there are mistakes, please open an issue on it.
-If there is functionality that is not documented, open an issue and if I know anything about it, I will gladly add it.
+<br>If there are mistakes, please open an issue on it.
+<br>If there is functionality that is not documented, open an issue and if I know anything about it, I will gladly add it.
 
 **Kristof Mulier** also adapted the documentation into a great website at **https://qscintilla.com/**
 <a href="https://qscintilla.com"><img src="https://qscintilla.com/wp-content/uploads/2017/01/logo_02.png" align="left" width="64" height="64"></a>. 
