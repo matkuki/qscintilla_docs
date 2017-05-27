@@ -4,6 +4,9 @@ from libc.stdlib cimport malloc, free
 from libc.string cimport strcmp, strstr, strlen, strcpy, strchr, strtok
 from cpython.unicode cimport PyUnicode_AsEncodedString
 
+cdef int my_ints[5]
+print(my_ints)
+
 """
 Common functions and variables
 """
@@ -237,7 +240,6 @@ def cython_style_text(int start, int end, lexer, editor):
                     temp_state,
                     setStyling
                 )
-    '''TOKENIZATION - THE SLOW PART IF DONE IN PYTHON'''
 
 cdef inline void check_token(char*  current_token,
                              char*  previous_token,
