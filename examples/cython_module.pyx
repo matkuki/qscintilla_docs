@@ -4,9 +4,6 @@ from libc.stdlib cimport malloc, free
 from libc.string cimport strcmp, strstr, strlen, strcpy, strchr, strtok
 from cpython.unicode cimport PyUnicode_AsEncodedString
 
-cdef int my_ints[5]
-print(my_ints)
-
 """
 Common functions and variables
 """
