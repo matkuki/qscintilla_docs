@@ -190,6 +190,21 @@ editor.SendScintilla(
     length
 )
 
+# Change the indicator value and fill a new line
+value = 555
+editor.SendScintilla(
+    PyQt5.Qsci.QsciScintilla.SCI_SETINDICATORVALUE,
+    value
+)
+fill_line = 6
+start_position = editor.positionFromLineIndex(fill_line, 0)
+length = len(editor.text(fill_line))
+editor.SendScintilla(
+    PyQt5.Qsci.QsciScintilla.SCI_INDICATORFILLRANGE,
+    start_position,
+    length
+)
+
 # For the QScintilla editor to properly process events we need to add it to
 # a QMainWindow object.
 main_window = PyQt5.QtWidgets.QMainWindow()
