@@ -31,7 +31,7 @@ Indicator initialization
 """
 indicator_number = 0
 indicator_value = 222
-indicator_color = PyQt5.QtGui.QColor(0x8a, 0x00, 0x34, 0xff)
+indicator_color = PyQt5.QtGui.QColor(0xff, 0x00, 0xff, 0xff)
 indicator_hover_color = PyQt5.QtGui.QColor(0x8a, 0x8a, 0x00)
 draw_under_text = True
 # Define the indicator type.
