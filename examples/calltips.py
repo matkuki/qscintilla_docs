@@ -48,12 +48,15 @@ api = QsciAPIs(my_lexer)
 # Create a function list that will be used by the autocompletions and call tips.
 # The difference between a call tip and an autocompletion is that the call tip
 # has also the arguments defined!
-# In the example 'funcs' list below the first item is a call tip and
-# the second item is an autocompletion.
+# In the example 'funcs' list below the first item is an autocompletion and
+# the rest are call tips.
+# The text after the first call tip is also displayed in a popup window and can be used
+# for the functions description or other information.
+
 funcs = [
     "test_autocompletion",
-    "add(int arg_1, float arg_2)", 
-    "subtract(int arg_1, test arg_2)", 
+    "add(int arg_1, float arg_2) Add two integers together", # This call tip has a description
+    "subtract(int arg_1, test arg_2)",
     "subtract(float arg_1, float arg_2)", 
     "subtract(test arg_1, test arg_2)", 
     "divide(float div_1, float div_2)",
@@ -63,7 +66,7 @@ funcs = [
 for s in funcs:
     api.add(s)
 
-# Prepare the QsciAPIs instance
+# Prepare the QsciAPIs instance information
 api.prepare()
 
 # Set the editor's lexer
