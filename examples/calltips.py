@@ -62,12 +62,6 @@ funcs = [
 # Add the functions to the api
 for s in funcs:
     api.add(s)
-# I have no idea what this list and the number of commas if for!
-# Check the qsciapis.h and qsciapis.cpp files in the QScintilla source code and
-# if you figure out how it works please let me know!
-shifts = []
-commas = 1
-api.callTips(funcs, commas, QsciScintilla.CallTipsNoContext, shifts)
 
 # Prepare the QsciAPIs instance
 api.prepare()
