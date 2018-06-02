@@ -40,9 +40,9 @@ class MyCommentingEditor(PyQt5.Qsci.QsciScintilla):
         # Loop over selections and comment them
         for i, sel in enumerate(selections):
             if self.text(sel[0]).strip().startswith(self.comment_string):
-                self._uncomment_selection(sel[0], sel[1])
+                self.set_commenting(sel[0], sel[1], self._uncomment)
             else:
-                self._comment_selection(sel[0], sel[1])
+                self.set_commenting(sel[0], sel[1], self._comment)
         # Select back the previously selected regions
         self.SendScintilla(self.SCI_CLEARSELECTIONS)
         for i, sel in enumerate(selections):
@@ -73,7 +73,7 @@ class MyCommentingEditor(PyQt5.Qsci.QsciScintilla):
         # Return selection list
         return selections
     
-    def _comment_selection(self, arg_from_line, arg_to_line):
+    def set_commenting(self, arg_from_line, arg_to_line, func):
         # Get the cursor information
         from_line = arg_from_line
         to_line = arg_to_line
@@ -87,34 +87,23 @@ class MyCommentingEditor(PyQt5.Qsci.QsciScintilla):
         selected_list = selected_text.split("\n")
         # Add the commenting character to every line
         for i, line in enumerate(selected_list):
-#            selected_list[i] = line[:indent_index] + self.comment_string + line[indent_index:]
-            if line.strip() != ""
-                selected_list[i] = self.comment_string + line
+            selected_list[i] = func(line)
         # Replace the whole selected text with the merged lines
         # containing the commenting characters
         replace_text = self.line_ending.join(selected_list)
         self.replaceSelectedText(replace_text)
     
-    def _uncomment_selection(self, arg_from_line, arg_to_line):
-        # Get the cursor information
-        from_line = arg_from_line
-        to_line = arg_to_line
-        # Set the selection from the beginning of the cursor line
-        # to the end of the last selection line
-        self.setSelection(
-            from_line, 0, to_line, len(self.text(to_line))-1
-        )
-        # Get the selected text and split it into lines
-        selected_text = self.selectedText()
-        selected_list = selected_text.split("\n")
-        # Add the commenting character to every line
-        for i, line in enumerate(selected_list):
-            if line.strip().startswith(self.comment_string):
-                selected_list[i] = line.replace(self.comment_string, "", 1)
-        # Replace the whole selected text with the merged lines
-        # containing the commenting characters
-        replace_text = self.line_ending.join(selected_list)
-        self.replaceSelectedText(replace_text)
+    def _comment(self, line):
+        if line.strip() != "":
+            return self.comment_string + line
+        else:
+            return line
+    
+    def _uncomment(self, line):
+        if line.strip().startswith(self.comment_string):
+            return line.replace(self.comment_string, "", 1)
+        else:
+            return line
 
         
 
