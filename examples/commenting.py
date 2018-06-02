@@ -17,6 +17,9 @@ Custom editor with a simple commenting feature
 similar to what SublimeText3 does
 """
 class MyCommentingEditor(PyQt5.Qsci.QsciScintilla):
+    comment_string = "// "
+    line_ending = "\n"
+    
     def keyPressEvent(self, event):
         # Execute the superclasses event
         super().keyPressEvent(event)
@@ -32,9 +35,21 @@ class MyCommentingEditor(PyQt5.Qsci.QsciScintilla):
         selections = self.get_selections()
         if selections == None:
             return
+        # Start the undo action that can undo all commenting at once
+        self.beginUndoAction()
         # Loop over selections and comment them
-        for sel in selections:
+        for i, sel in enumerate(selections):
             self._comment_selection(sel[0], sel[1])
+        # Select back the previously selected regions
+        self.SendScintilla(self.SCI_CLEARSELECTIONS)
+        for i, sel in enumerate(selections):
+            start_index = self.positionFromLineIndex(sel[0], 0)
+            end_index = self.positionFromLineIndex(sel[1], len(self.text(sel[1]))-1)
+            if i == 0:
+                self.SendScintilla(self.SCI_SETSELECTION, start_index, end_index)
+            else:
+                self.SendScintilla(self.SCI_ADDSELECTION, start_index, end_index)
+        self.endUndoAction()
     
     def get_selections(self):
         # Get the selection and store them in a list
@@ -44,19 +59,21 @@ class MyCommentingEditor(PyQt5.Qsci.QsciScintilla):
                 self.SendScintilla(self.SCI_GETSELECTIONNSTART, i),
                 self.SendScintilla(self.SCI_GETSELECTIONNEND, i)
             )
-            selections.append(selection)
+            # Add selection to list
+            from_line, from_index = self.lineIndexFromPosition(selection[0])
+            to_line, to_index = self.lineIndexFromPosition(selection[1])
+            selections.append((from_line, to_line))
+        selections.sort()
         # Check if there are selections or not
         if len(selections) == 1 and selections[0][0] == selections[0][1]:
             return None
         # Return selection list
         return selections
     
-    def _comment_selection(self, arg_from_index, arg_to_index):
+    def _comment_selection(self, arg_from_line, arg_to_line):
         # Get the cursor information
-        from_line, from_index = self.lineIndexFromPosition(arg_from_index)
-        to_line, to_index = self.lineIndexFromPosition(arg_to_index)
-        # Store the indentation level
-        indent_index = from_index
+        from_line = arg_from_line
+        to_line = arg_to_line
         # Set the selection from the beginning of the cursor line
         # to the end of the last selection line
         self.setSelection(
@@ -67,10 +84,13 @@ class MyCommentingEditor(PyQt5.Qsci.QsciScintilla):
         selected_list = selected_text.split("\n")
         # Add the commenting character to every line
         for i, line in enumerate(selected_list):
-            selected_list[i] = line[:indent_index] + "//" + line[indent_index:]
+#            selected_list[i] = line[:indent_index] + self.comment_string + line[indent_index:]
+            selected_list[i] = self.comment_string + line
         # Replace the whole selected text with the merged lines
         # containing the commenting characters
-        self.replaceSelectedText("\n".join(selected_list))
+        replace_text = self.line_ending.join(selected_list)
+        self.replaceSelectedText(replace_text)
+
         
 
 # Create the main PyQt application object
@@ -79,6 +99,7 @@ application = PyQt5.QtWidgets.QApplication(sys.argv)
 # Create a QScintila editor instance
 editor = MyCommentingEditor()
 editor.SendScintilla(editor.SCI_SETMULTIPLESELECTION, 1)
+editor.SendScintilla(editor.SCI_SETADDITIONALSELECTIONTYPING, True)
 
 # Show the editor
 editor.show()
