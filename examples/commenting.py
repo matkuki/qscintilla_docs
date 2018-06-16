@@ -35,9 +35,11 @@ class MyCommentingEditor(PyQt5.Qsci.QsciScintilla):
         selections = self.get_selections()
         if selections == None:
             return
+        print(selections)
         # Merge overlapping selections
         while self.merge_test(selections) == True:
             selections = self.merge_selections(selections)
+        print(selections)
         # Start the undo action that can undo all commenting at once
         self.beginUndoAction()
         # Loop over selections and comment them
@@ -50,7 +52,12 @@ class MyCommentingEditor(PyQt5.Qsci.QsciScintilla):
         self.SendScintilla(self.SCI_CLEARSELECTIONS)
         for i, sel in enumerate(selections):
             start_index = self.positionFromLineIndex(sel[0], 0)
-            end_index = self.positionFromLineIndex(sel[1], len(self.text(sel[1]))-1)
+            # Check if ending line is the last line in the editor
+            last_line = sel[1]
+            if last_line == self.lines() - 1:
+                end_index = self.positionFromLineIndex(sel[1], len(self.text(last_line)))
+            else:
+                end_index = self.positionFromLineIndex(sel[1], len(self.text(last_line))-1)
             if i == 0:
                 self.SendScintilla(self.SCI_SETSELECTION, start_index, end_index)
             else:
@@ -71,9 +78,6 @@ class MyCommentingEditor(PyQt5.Qsci.QsciScintilla):
             to_line, to_index = self.lineIndexFromPosition(selection[1])
             selections.append((from_line, to_line))
         selections.sort()
-        # Check if there are selections or not
-        if len(selections) == 1 and selections[0][0] == selections[0][1]:
-            return None
         # Return selection list
         return selections
     
@@ -131,10 +135,16 @@ class MyCommentingEditor(PyQt5.Qsci.QsciScintilla):
         # Get the cursor information
         from_line = arg_from_line
         to_line = arg_to_line
+        # Check if ending line is the last line in the editor
+        last_line = to_line
+        if last_line == self.lines() - 1:
+            to_index = len(self.text(to_line))
+        else:
+            to_index = len(self.text(to_line))-1
         # Set the selection from the beginning of the cursor line
         # to the end of the last selection line
         self.setSelection(
-            from_line, 0, to_line, len(self.text(to_line))-1
+            from_line, 0, to_line, to_index
         )
         # Get the selected text and split it into lines
         selected_text = self.selectedText()
@@ -154,7 +164,6 @@ class MyCommentingEditor(PyQt5.Qsci.QsciScintilla):
     
     def _comment(self, line, indent_level):
         if line.strip() != "":
-#            return self.comment_string + line
             return line[:indent_level] + self.comment_string + line[indent_level:]
         else:
             return line
@@ -172,6 +181,7 @@ application = PyQt5.QtWidgets.QApplication(sys.argv)
 
 # Create a QScintila editor instance
 editor = MyCommentingEditor()
+editor.setMarginType(1, PyQt5.Qsci.QsciScintilla.NumberMargin)
 editor.SendScintilla(editor.SCI_SETMULTIPLESELECTION, 1)
 editor.SendScintilla(editor.SCI_SETADDITIONALSELECTIONTYPING, True)
 
