@@ -35,11 +35,9 @@ class MyCommentingEditor(PyQt5.Qsci.QsciScintilla):
         selections = self.get_selections()
         if selections == None:
             return
-        print(selections)
         # Merge overlapping selections
         while self.merge_test(selections) == True:
             selections = self.merge_selections(selections)
-        print(selections)
         # Start the undo action that can undo all commenting at once
         self.beginUndoAction()
         # Loop over selections and comment them
